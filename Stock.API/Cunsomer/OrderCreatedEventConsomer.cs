@@ -61,6 +61,9 @@ namespace Stock.API.Cunsomer
                     OrderId = context.Message.OrderId,
                     Message = "Yeterli stok yok"
                 });
+
+                _logger.LogInformation($"Yeterli stok bulunamadı: {context.Message.BuyerId}");
+
             }
         }
     }
