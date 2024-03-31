@@ -1,13 +1,36 @@
+using Microsoft.EntityFrameworkCore;
+using Stock.API.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseInMemoryDatabase("StockDb");
+});
+
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+
+//SeedData Added //SeedData Eklendi
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    context.Stocks.Add(new Stock.API.Models.Stock() { Id = 1, ProductId = 2, Count = 100 });
+    context.Stocks.Add(new Stock.API.Models.Stock() { Id = 2, ProductId = 3, Count = 100 });
+    context.SaveChanges();
+
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
