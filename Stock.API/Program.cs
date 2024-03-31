@@ -1,4 +1,7 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Shared;
+using Stock.API.Cunsomer;
 using Stock.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +17,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("StockDb");
 });
 
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<OrderCreatedEventConsomer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("RabbitMQ"));
+
+        cfg.ReceiveEndpoint(RabbitMQSettingsConst.StockOrderCreatedEventQueueName, e =>
+        {
+            e.ConfigureConsumer<OrderCreatedEventConsomer>(context);
+        });
+    });
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
