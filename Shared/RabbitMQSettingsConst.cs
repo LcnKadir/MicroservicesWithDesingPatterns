@@ -8,8 +8,10 @@ namespace Shared
 {
     public class RabbitMQSettingsConst
     {
-        public const string StrockReserveEventQueueName = "stock-reserved-queue";
+        public const string StockReserveEventQueueName = "stock-reserved-queue";
 
         public const string StockOrderCreatedEventQueueName = "stock-order-created-queue";
+
+        public const string PaymentStockReserveEventQueueName = "payment-stock-reserved-queue";
     }
 }

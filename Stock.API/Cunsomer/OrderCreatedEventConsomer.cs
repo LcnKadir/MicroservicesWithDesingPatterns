@@ -43,7 +43,7 @@ namespace Stock.API.Cunsomer
                 }
 
                 _logger.LogInformation($"Stok rezerve edildi: {context.Message.BuyerId}");
-                var sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettingsConst.StrockReserveEventQueueName}"));
+                var sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettingsConst.StockReserveEventQueueName}"));
 
                 StockReserveEvent stockReserveEvent = new StockReserveEvent()
                 {
