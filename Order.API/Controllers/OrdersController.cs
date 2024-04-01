@@ -49,7 +49,7 @@ namespace Order.API.Controllers
                     CardNumber = orderCreate.payment.CardNumber,
                     Expiration = orderCreate.payment.Expiration,
                     CVV = orderCreate.payment.CVV,
-                    TotalPrice = orderCreate.orderItems.Sum(x => x.ProductId * x.Count)
+                    TotalPrice = orderCreate.orderItems.Sum(x => x.Price * x.Count)
                 }
 
 

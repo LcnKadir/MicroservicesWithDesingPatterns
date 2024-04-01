@@ -21,6 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<PaymentCompletedEventConsumer>();
+    x.AddConsumer<PaymentFailEventConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("RabbitMQ"));
@@ -28,6 +29,11 @@ builder.Services.AddMassTransit(x =>
         cfg.ReceiveEndpoint(RabbitMQSettingsConst.OrderPaymentCompletedEventQueueName, e =>
         {
             e.ConfigureConsumer<PaymentCompletedEventConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint(RabbitMQSettingsConst.OrderPaymentFailedEventQueueName, e =>
+        {
+            e.ConfigureConsumer<PaymentFailEventConsumer>(context);
         });
     });
 });
