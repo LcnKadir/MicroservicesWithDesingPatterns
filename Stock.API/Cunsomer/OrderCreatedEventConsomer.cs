@@ -42,7 +42,7 @@ namespace Stock.API.Cunsomer
 
                 }
 
-                _logger.LogInformation($"Stok rezerve edildi: {context.Message.BuyerId}");
+                _logger.LogInformation($"Stock was reserved for Buyer Id: {context.Message.BuyerId}");
                 var sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettingsConst.StockReserveEventQueueName}"));
 
                 StockReserveEvent stockReserveEvent = new StockReserveEvent()
@@ -59,10 +59,10 @@ namespace Stock.API.Cunsomer
                 await _publishEndpoint.Publish(new StockNotReserveEvent()
                 {
                     OrderId = context.Message.OrderId,
-                    Message = "Yeterli stok yok"
+                    Message = "Not enough stock"
                 });
 
-                _logger.LogInformation($"Yeterli stok bulunamadı: {context.Message.BuyerId}");
+                _logger.LogInformation($"Not enough stock for Buyer Id : {context.Message.BuyerId}");
 
             }
         }
