@@ -1,6 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Order.API.Consumer;
+using Order.API.Consumers;
 using Order.API.Models;
 using Shared;
 

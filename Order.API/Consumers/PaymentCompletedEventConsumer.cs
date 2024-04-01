@@ -2,7 +2,7 @@
 using Order.API.Models;
 using Shared;
 
-namespace Order.API.Consumer
+namespace Order.API.Consumers
 {
     public class PaymentCompletedEventConsumer : IConsumer<PaymentCompletedEvent>
     {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shared;
 using Stock.API.Models;
 
-namespace Stock.API.Cunsomer
+namespace Stock.API.Cunsomers
 {
     public class OrderCreatedEventConsomer : IConsumer<OrderCreatedEvent>
     {
