@@ -19,15 +19,15 @@ namespace Payment.API.Consumers
             var balance = 3000m;
             if(balance> context.Message.Payment.TotalPrice)
             {
-                _logger.LogInformation($"{context.Message.Payment.TotalPrice} Paranız kartınızdan çekildi id={context.Message.BuyerId}");
+                _logger.LogInformation($"{context.Message.Payment.TotalPrice} TL kartınızdan çekildi id={context.Message.BuyerId}");
            
-            await _publishEndpoint.Publish(new PaymentSuccessedEvent { BuyerId = context.Message.BuyerId, OrderId= context.Message.OrderId });
+            await _publishEndpoint.Publish(new PaymentCompletedEvent { BuyerId = context.Message.BuyerId, OrderId= context.Message.OrderId });
             }
             else
             {
                 _logger.LogInformation($"{context.Message.Payment.TotalPrice} Satın alma işlemi gerçekleşemedi id={context.Message.BuyerId}");
 
-                await _publishEndpoint.Publish(new PaymentFailedEvent { BuyerId = context.Message.BuyerId, OrderId = context.Message.OrderId, Message="yeterli bakiye yok" });
+                await _publishEndpoint.Publish(new PaymentFailedEvent { BuyerId = context.Message.BuyerId, OrderId = context.Message.OrderId, Message="Yeterli bakiye yok" });
             }
         }
     }
