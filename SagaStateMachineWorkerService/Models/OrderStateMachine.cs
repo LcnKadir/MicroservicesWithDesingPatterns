@@ -1,6 +1,7 @@
 ﻿using Automatonymous;
 using MassTransit;
 using Shared;
+using Shared.Events;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,13 @@ using System.Threading.Tasks;
 
 namespace SagaStateMachineWorkerService.Models
 {
-    public class OrderStateMachine: MassTransitStateMachine<OrderStateInstance>
+    public class OrderStateMachine : MassTransitStateMachine<OrderStateInstance>
     {
         public Event<IOrderCreatedRequestEvent> OrderCreatedRequestEvent { get; set; }
-        public State OrderCreated {  get; private set; }
+        public Event<IStockReserveEvent> StockReserveEvent { get; set; }
+
+        public State OrderCreated { get; private set; }
+        public State StockReserved { get; private set; }
 
         public OrderStateMachine()
         {
@@ -33,12 +37,27 @@ namespace SagaStateMachineWorkerService.Models
                 context.Instance.CVV = context.Data.Payment.CVV;
                 context.Instance.Expiration = context.Data.Payment.Expiration;
                 context.Instance.TotalPrice = context.Data.Payment.TotalPrice;
-            }).Then(context=> { Console.WriteLine($"OrderCreatedRequestEvent before : {context.Instance}"); }).TransitionTo(OrderCreated)
-            .Publish(context=> new OrderCreatedEvent(context.Instance.CorrelationId) { OrderItems = context.Data.OrderItems})
+            }).Then(context => { Console.WriteLine($"OrderCreatedRequestEvent before : {context.Instance}"); }).TransitionTo(OrderCreated)
+            .Publish(context => new OrderCreatedEvent(context.Instance.CorrelationId) { OrderItems = context.Data.OrderItems })
             .TransitionTo(OrderCreated)
-            .Then(context => { Console.WriteLine($"OrderCreatedRequestEvent after : {context.Instance}"); } ));
+            .Then(context => { Console.WriteLine($"OrderCreatedRequestEvent after : {context.Instance}"); }));
+
+            During(OrderCreated,
+               When(StockReserveEvent)
+              .TransitionTo(StockReserved)
+               .Send(new Uri($"queue:{RabbitMQSettingsConst.PaymentStockReserveRequestQueueName}"), context => new
+             StockReserveRequestPayment(context.Instance.CorrelationId)
+               {
+                   OrderItems = context.Data.OrderItems,
+                   Payment = new PaymentMessage()
+                   {
+                       CardName = context.Instance.CardName,
+                       CardNumber = context.Instance.CardNumber,
+                       CVV = context.Instance.CVV,
+                       Expiration = context.Instance.Expiration,
+                       TotalPrice = context.Instance.TotalPrice
+                   }
+               }).Then(context => { Console.WriteLine($"StockReserveEvent after : {context.Instance}"); }));
         }
-
-
     }
 }
