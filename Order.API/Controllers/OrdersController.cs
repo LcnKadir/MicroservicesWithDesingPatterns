@@ -62,11 +62,9 @@ namespace Order.API.Controllers
                 orderCreatedRequestEvenet.OrderItems.Add(new OrderItemMessage { Count = item.Count, ProductId = item.ProductId });
             });
 
-            var sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue: {RabbitMQSettingsConst.OrderSaga}"));
+            var sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettingsConst.OrderSaga}"));
 
             await sendEndpoint.Send<IOrderCreatedRequestEvent>(orderCreatedRequestEvenet);
-
-            //await _publishEndpoint.Publish(orderCreatedEvenet);
 
             return Ok();
         }
