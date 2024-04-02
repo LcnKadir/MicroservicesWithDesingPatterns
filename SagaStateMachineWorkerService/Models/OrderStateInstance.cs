@@ -1,4 +1,5 @@
 ﻿using Automatonymous;
+using MassTransit;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -34,7 +35,7 @@ namespace SagaStateMachineWorkerService.Models
             properties.ToList().ForEach(p =>
             {
                 var value = p.GetValue(this, null);
-                sb.Append($"{p.Name}:{value}");
+                sb.AppendLine($"{p.Name}:{value}");
             });
 
             sb.Append("--------------------");

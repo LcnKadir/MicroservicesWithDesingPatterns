@@ -1,4 +1,4 @@
-﻿using MassTransit.EntityFrameworkCoreIntegration.Mappings;
+﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;

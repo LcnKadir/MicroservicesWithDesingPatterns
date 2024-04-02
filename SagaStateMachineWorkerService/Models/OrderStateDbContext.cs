@@ -1,5 +1,4 @@
 ﻿using MassTransit.EntityFrameworkCoreIntegration;
-using MassTransit.EntityFrameworkCoreIntegration.Mappings;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
