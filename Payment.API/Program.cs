@@ -11,15 +11,15 @@ builder.Services.AddControllers();
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<StockReservedEventConsumer>();
+    x.AddConsumer<StockReserveRequestPaymentConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(builder.Configuration.GetConnectionString("RabbitMQ"));
 
-        cfg.ReceiveEndpoint(RabbitMQSettingsConst.StockReserveEventQueueName, e =>
+        cfg.ReceiveEndpoint(RabbitMQSettingsConst.PaymentStockReserveRequestQueueName, e =>
         {
-            e.ConfigureConsumer<StockReservedEventConsumer>(context);
+            e.ConfigureConsumer<StockReserveRequestPaymentConsumer>(context);
         });
     });
 });

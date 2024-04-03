@@ -1,18 +1,19 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Shared;
+using Shared.Events;
+using Shared.Interfaces;
 using Stock.API.Models;
 
 namespace Stock.API.Cunsomers
 {
-    public class OrderCreatedEventConsomer : IConsumer<OrderCreatedEvent>
+    public class OrderCreatedEventConsumer : IConsumer<IOrderCreatedEvent>
     {
         private readonly AppDbContext _context;
-        private ILogger<OrderCreatedEventConsomer> _logger;
+        private ILogger<OrderCreatedEventConsumer> _logger;
         private readonly ISendEndpointProvider _sendEndpointProvider;
         private readonly IPublishEndpoint _publishEndpoint;
 
-        public OrderCreatedEventConsomer(AppDbContext context, ILogger<OrderCreatedEventConsomer> logger, ISendEndpointProvider sendEndpointProvider, IPublishEndpoint publishEndpoint)
+        public OrderCreatedEventConsumer(AppDbContext context, ILogger<OrderCreatedEventConsumer> logger, ISendEndpointProvider sendEndpointProvider, IPublishEndpoint publishEndpoint)
         {
             _context = context;
             _logger = logger;
@@ -20,7 +21,7 @@ namespace Stock.API.Cunsomers
             _publishEndpoint = publishEndpoint;
         }
 
-        public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
+        public async Task Consume(ConsumeContext<IOrderCreatedEvent> context)
         {
             var stockResult = new List<bool>();
 
@@ -42,29 +43,27 @@ namespace Stock.API.Cunsomers
 
                 }
 
-                _logger.LogInformation($"Stock was reserved for Buyer Id: {context.Message.BuyerId}");
-                var sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettingsConst.StockReserveEventQueueName}"));
+                _logger.LogInformation($"Stock was reserved for Buyer Id: {context.Message.CorrelationId}");
 
-                StockReserveEvent stockReserveEvent = new StockReserveEvent()
+                StockReserveEvent stockReserveEvent = new StockReserveEvent(context.Message.CorrelationId)
                 {
-                    Payment = context.Message.Payment,
-                    BuyerId = context.Message.BuyerId,
-                    OrderId = context.Message.OrderId,
                     OrderItems = context.Message.OrderItems,
                 };
-                await sendEndpoint.Send(stockReserveEvent);
+
+                await _publishEndpoint.Publish(stockReserveEvent);
             }
             else
             {
-                await _publishEndpoint.Publish(new StockNotReserveEvent()
+                await _publishEndpoint.Publish(new StockNotReserveEvent(context.Message.CorrelationId)
                 {
-                    OrderId = context.Message.OrderId,
-                    Message = "Not enough stock"
+
+                    Reason = "Not enough stock"
                 });
 
-                _logger.LogInformation($"Not enough stock for Buyer Id : {context.Message.BuyerId}");
+                _logger.LogInformation($"Not enough stock for CorrelationId : {context.Message.CorrelationId}");
 
             }
         }
     }
 }
+
