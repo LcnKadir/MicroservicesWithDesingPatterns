@@ -15,21 +15,27 @@ namespace SagaStateMachineWorkerService.Models
     {
         public Event<IOrderCreatedRequestEvent> OrderCreatedRequestEvent { get; set; }
         public Event<IStockReserveEvent> StockReserveEvent { get; set; }
+        public Event<IStockNotReserveEvent> StockNotReserveEvent { get; set; }
         public Event<IPaymentCompletedEvent> PaymentCompletedEvent { get; set; }
 
         public State OrderCreated { get; private set; }
         public State StockReserved { get; private set; }
+        public State StockNotReserved { get; private set; }
         public State PaymentCompleted { get; private set; }
 
         public OrderStateMachine()
         {
             InstanceState(x => x.CurrentState);
 
-            Event(() => OrderCreatedRequestEvent, y => y.CorrelateBy<int>(x => x.OrderId, z => z.Message.OrderId).SelectId(context => Guid.NewGuid())); //When the event is fired, it will change the state of the related line //Event fırlatıldığında ilgili satırın state'ini değiştirecek
+            //When the event is fired, it will change the state of the related line //Event fırlatıldığında ilgili satırın state'ini değiştirecek
+            Event(() => OrderCreatedRequestEvent, y => y.CorrelateBy<int>(x => x.OrderId, z => z.Message.OrderId).SelectId(context => Guid.NewGuid()));
 
-            Event(() => StockReserveEvent, x => x.CorrelateById(y => y.Message.CorrelationId)); //When the event is fired, it will change the state of the related line //Event fırlatıldığında ilgili satırın state'ini değiştirecek
+            Event(() => StockReserveEvent, x => x.CorrelateById(y => y.Message.CorrelationId));
 
-            Event(()=> PaymentCompletedEvent, x => x.CorrelateById(y => y.Message.CorrelationId)); //When the event is fired, it will change the state of the related line //Event fırlatıldığında ilgili satırın state'ini değiştirecek 
+            Event(() => PaymentCompletedEvent, x => x.CorrelateById(y => y.Message.CorrelationId));
+
+            Event(() => StockNotReserveEvent, x => x.CorrelateById(y => y.Message.CorrelationId));
+
 
             Initially(When(OrderCreatedRequestEvent).Then(context =>
             {
@@ -64,12 +70,15 @@ namespace SagaStateMachineWorkerService.Models
                        TotalPrice = context.Instance.TotalPrice
                    },
                    BuyerId = context.Instance.BuyerId
-               }).Then(context => { Console.WriteLine($"StockReserveEvent after : {context.Instance}"); }));
+               }).Then(context => { Console.WriteLine($"StockReserveEvent after : {context.Instance}"); }),
+               When(StockNotReserveEvent).TransitionTo(StockNotReserved)
+               .Publish(cont => new OrderRequestFailedEvent() { OrderId = cont.Instance.OrderId, Reason = cont.Data.Reason })
+               .Then(cont => { Console.WriteLine($"StockReserveEvent after : {cont.Instance}"); }));
 
-            During(StockReserved, 
+            During(StockReserved,
                 When(PaymentCompletedEvent)
                 .TransitionTo(PaymentCompleted)
-                .Publish(context =>new OrderRequestCompletedEventCunsomer() { OrderId = context.Instance.OrderId })
+                .Publish(context => new OrderRequestCompletedEventCunsomer() { OrderId = context.Instance.OrderId })
                 .Then(context => { Console.WriteLine($"PaymentCompletedEvent after : {context.Instance}"); }).Finalize());
         }
     }

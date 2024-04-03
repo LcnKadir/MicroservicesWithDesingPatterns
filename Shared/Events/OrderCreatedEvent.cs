@@ -5,16 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared
+namespace Shared.Events
 {
-    public class StockNotReserveEvent : IStockNotReserveEvent
+    public class OrderCreatedEvent : IOrderCreatedEvent
     {
-        public StockNotReserveEvent(Guid correlationId)
+
+        public OrderCreatedEvent(Guid correlationId)
         {
             CorrelationId = correlationId;
         }
 
-        public string Reason { get; set; }
+        public List<OrderItemMessage> OrderItems { get; set; }
 
         public Guid CorrelationId { get; }
     }
