@@ -3,6 +3,7 @@ using MassTransit;
 using Shared;
 using Shared.Events;
 using Shared.Interfaces;
+using Shared.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +18,13 @@ namespace SagaStateMachineWorkerService.Models
         public Event<IStockReserveEvent> StockReserveEvent { get; set; }
         public Event<IStockNotReserveEvent> StockNotReserveEvent { get; set; }
         public Event<IPaymentCompletedEvent> PaymentCompletedEvent { get; set; }
+        public Event<IPaymentFailedEvent> PaymentFailedEvent { get; set; }
 
         public State OrderCreated { get; private set; }
         public State StockReserved { get; private set; }
         public State StockNotReserved { get; private set; }
         public State PaymentCompleted { get; private set; }
+        public State PaymentFailed { get; private set; }
 
         public OrderStateMachine()
         {
@@ -79,7 +82,14 @@ namespace SagaStateMachineWorkerService.Models
                 When(PaymentCompletedEvent)
                 .TransitionTo(PaymentCompleted)
                 .Publish(context => new OrderRequestCompletedEventCunsomer() { OrderId = context.Instance.OrderId })
-                .Then(context => { Console.WriteLine($"PaymentCompletedEvent after : {context.Instance}"); }).Finalize());
+                .Then(context => { Console.WriteLine($"PaymentCompletedEvent after : {context.Instance}"); }).Finalize(),
+                When(PaymentFailedEvent)
+                .Publish(cont => new OrderRequestFailedEvent() { OrderId = cont.Instance.OrderId, Reason = cont.Data.Reason })
+                .Send(new Uri($"queue:{RabbitMQSettingsConst.StockRollBackMessageQueueName}"), context => new StockRollBackMessage() { OrderItems = context.Data.OrderItems}).TransitionTo(PaymentFailed)
+                .Then(context => { Console.WriteLine($"PaymentFailEvent after : {context.Instance}"); })
+                );
+
+            SetCompletedWhenFinalized(); // Delete completed transactions from the database // Tamamlanmış olan işlemleri veri tabanından silecek
         }
     }
 }
