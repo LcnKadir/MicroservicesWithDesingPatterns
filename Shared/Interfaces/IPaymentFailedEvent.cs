@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 
 namespace Shared.Interfaces
 {
-    public interface IStockReserveRequestPayment : CorrelatedBy<Guid>
+    public interface IPaymentFailedEvent: CorrelatedBy<Guid>
     {
-        public PaymentMessage  Payment { get; set; }
+        public string Reason { get; set; }
         public List<OrderItemMessage> OrderItems { get; set; }
-
-        public string BuyerId { get; set; }
     }
 }

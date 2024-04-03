@@ -7,16 +7,14 @@ using System.Threading.Tasks;
 
 namespace Shared.Events
 {
-    public class StockReserveRequestPayment : IStockReserveRequestPayment
+    public class PaymentFailedEvent : IPaymentFailedEvent
     {
-        public StockReserveRequestPayment(Guid correlationId)
+        public PaymentFailedEvent(Guid correlationId)
         {
             CorrelationId = correlationId;
         }
-        public PaymentMessage Payment { get ; set; }
+        public string Reason { get; set; }
+        public Guid CorrelationId { get; }
         public List<OrderItemMessage> OrderItems { get; set; }
-
-        public Guid CorrelationId {  get; }
-        public string BuyerId { get; set; }
     }
 }
