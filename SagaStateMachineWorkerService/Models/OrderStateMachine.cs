@@ -15,15 +15,21 @@ namespace SagaStateMachineWorkerService.Models
     {
         public Event<IOrderCreatedRequestEvent> OrderCreatedRequestEvent { get; set; }
         public Event<IStockReserveEvent> StockReserveEvent { get; set; }
+        public Event<IPaymentCompletedEvent> PaymentCompletedEvent { get; set; }
 
         public State OrderCreated { get; private set; }
         public State StockReserved { get; private set; }
+        public State PaymentCompleted { get; private set; }
 
         public OrderStateMachine()
         {
             InstanceState(x => x.CurrentState);
 
-            Event(() => OrderCreatedRequestEvent, y => y.CorrelateBy<int>(x => x.OrderId, z => z.Message.OrderId).SelectId(context => Guid.NewGuid()));
+            Event(() => OrderCreatedRequestEvent, y => y.CorrelateBy<int>(x => x.OrderId, z => z.Message.OrderId).SelectId(context => Guid.NewGuid())); //When the event is fired, it will change the state of the related line //Event fırlatıldığında ilgili satırın state'ini değiştirecek
+
+            Event(() => StockReserveEvent, x => x.CorrelateById(y => y.Message.CorrelationId)); //When the event is fired, it will change the state of the related line //Event fırlatıldığında ilgili satırın state'ini değiştirecek
+
+            Event(()=> PaymentCompletedEvent, x => x.CorrelateById(y => y.Message.CorrelationId)); //When the event is fired, it will change the state of the related line //Event fırlatıldığında ilgili satırın state'ini değiştirecek 
 
             Initially(When(OrderCreatedRequestEvent).Then(context =>
             {
@@ -59,6 +65,12 @@ namespace SagaStateMachineWorkerService.Models
                    },
                    BuyerId = context.Instance.BuyerId
                }).Then(context => { Console.WriteLine($"StockReserveEvent after : {context.Instance}"); }));
+
+            During(StockReserved, 
+                When(PaymentCompletedEvent)
+                .TransitionTo(PaymentCompleted)
+                .Publish(context =>new OrderRequestCompletedEventCunsomer() { OrderId = context.Instance.OrderId })
+                .Then(context => { Console.WriteLine($"PaymentCompletedEvent after : {context.Instance}"); }).Finalize());
         }
     }
 }
