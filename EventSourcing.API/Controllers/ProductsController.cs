@@ -27,14 +27,21 @@ namespace EventSourcing.API.Controllers
         [HttpPut]
         public async Task<IActionResult> ChangeName(ChangeProductNameDto changeProductNameDto)
         {
-            await _mediator.Send(new ChangeProductNameCommand {ChangeProductNameDto = changeProductNameDto });
+            await _mediator.Send(new ChangeProductNameCommand { ChangeProductNameDto = changeProductNameDto });
             return NoContent();
         }
 
         [HttpPut]
         public async Task<IActionResult> ChangePrice(ChangeProductPriceDto changeProductPriceDto)
         {
-            await _mediator.Send(new ChangePorductPriceCommand { ChangeProductPriceDto = changeProductPriceDto});
+            await _mediator.Send(new ChangePorductPriceCommand { ChangeProductPriceDto = changeProductPriceDto });
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await _mediator.Send(new DeleteProductCommand() { Id = id });
             return NoContent();
         }
     }
