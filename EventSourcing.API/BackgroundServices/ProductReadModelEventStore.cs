@@ -36,16 +36,14 @@ namespace EventSourcing.API.BackgroundServices
         {
             await _eventStoreConnection.ConnectToPersistentSubscriptionAsync(ProductStream.StreamName, ProductStream.GroupName, EventAppeared, autoAck:false);
             // true: EventAppeared exception fırlamadı ise event gönderildi sayar.
-
-
-            throw new NotImplementedException();
         }
 
         private async Task EventAppeared(EventStorePersistentSubscriptionBase arg1, ResolvedEvent arg2)
         {
-            _logger.LogInformation("The Message processing...");
 
             var type = Type.GetType($"{Encoding.UTF8.GetString(arg2.Event.Metadata)}, EventSourcing.Shared");
+
+            _logger.LogInformation($"The Message processing... : {type.ToString()}");
 
             var eventData = Encoding.UTF8.GetString(arg2.Event.Data);
 

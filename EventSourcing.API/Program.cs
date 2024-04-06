@@ -12,13 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlCon"));
-});
-
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 
 builder.Services.AddEventStore(builder.Configuration);
@@ -29,8 +24,12 @@ builder.Services.AddHostedService<ProductReadModelEventStore>();
 builder.Services.AddSingleton<ProductStream>(); //Events will be reflected to the database with ProductStream. //ProductStream ile beraber Event'lerin veri tabanýna yansýmasý saðlanacak.
 
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlCon"));
+});
+
+
 
 var app = builder.Build();
 
