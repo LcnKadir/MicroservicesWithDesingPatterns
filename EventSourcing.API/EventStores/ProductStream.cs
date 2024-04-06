@@ -16,7 +16,7 @@ namespace EventSourcing.API.EventStores
             Events.AddLast(new ProductCreatedEvent { Id = Guid.NewGuid(), Name = creatProductDto.Name, Price = creatProductDto.Price, Stock = creatProductDto.Stock, UserId = creatProductDto.UserId });
         }
 
-        public void NewChanged(ChangeProductNameDto changeProductNameDto) 
+        public void NameChanged(ChangeProductNameDto changeProductNameDto) 
         {
             Events.AddLast(new ProductNameChangeEvent { ChangeName = changeProductNameDto.Name, Id = changeProductNameDto.Id });
         
