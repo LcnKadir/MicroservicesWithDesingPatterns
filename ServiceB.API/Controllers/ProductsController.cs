@@ -7,6 +7,7 @@ namespace ServiceB.API.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
+
         [HttpGet("{id}")]
         public IActionResult GetProduct (int id)
         {
