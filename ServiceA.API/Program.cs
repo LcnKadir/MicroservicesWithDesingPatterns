@@ -19,12 +19,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient<ProductService>(opt =>
 {
     opt.BaseAddress = new Uri("https://localhost:5003/api/products/");
-}).AddPolicyHandler(GetRetryPolicy());
+}).AddPolicyHandler(GetAdvanceCircuitBreakerPolicy());
 
 var app = builder.Build();
 
 
-//Retrypolicy
+//Retry Pattern
 IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
     return HttpPolicyExtensions.HandleTransientHttpError().OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound).WaitAndRetryAsync(5, retryAttempt =>
@@ -37,6 +37,39 @@ Task onretryAsync(DelegateResult<HttpResponseMessage> arg1, TimeSpan arg2)
 {
     Debug.WriteLine($"Request is made again: {arg2.TotalMilliseconds} ");
     return Task.CompletedTask;
+}
+
+
+
+//Circuit Breaker Pattern
+IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+{
+    return HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(3, TimeSpan.FromSeconds(10), onBreak: (arg1, arg2) =>
+    {
+        Debug.WriteLine("Circuit Breaker Status => On Break");
+    }, onReset: () => {
+
+        Debug.WriteLine("Circuit Breaker Status => On Reset");
+
+    }, onHalfOpen: () => {
+
+        Debug.WriteLine("Circuit Breaker Status => On HalfOpen");
+    });
+}
+
+IAsyncPolicy<HttpResponseMessage> GetAdvanceCircuitBreakerPolicy()
+{
+    return HttpPolicyExtensions.HandleTransientHttpError().AdvancedCircuitBreakerAsync(0.1,TimeSpan.FromSeconds(30),3,TimeSpan.FromSeconds(30), onBreak: (arg1, arg2) =>
+    {
+        Debug.WriteLine("Circuit Breaker Status => On Break");
+    }, onReset: () => {
+
+        Debug.WriteLine("Circuit Breaker Status => On Reset");
+
+    }, onHalfOpen: () => {
+
+        Debug.WriteLine("Circuit Breaker Status => On HalfOpen");
+    });
 }
 
 
